@@ -8,4 +8,4 @@ Run 'npm install' in folders 'client' and 'test-svelte'
 
 'npm run client' runs 'client'
 
-'npm run sever' runs 'server'
+'npm run server' runs 'server'
