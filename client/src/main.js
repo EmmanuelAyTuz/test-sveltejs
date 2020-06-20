@@ -1,9 +1,20 @@
-import App from "./App.svelte";
+import Header from "./Header.svelte";
+import Main from "./Main.svelte";
+import Footer from "./Footer.svelte";
 
-const app = new App({
+const header = new Header({
+  target: document.head,
+  props: { title: "Test Svelte" },
+});
+
+const main = new Main({
   target: document.body,
 });
 
-window.app = app;
+const footer = new Footer({
+  target: document.body,
+});
 
-export default app;
+window.app = { header, main, footer };
+
+//export default app;
