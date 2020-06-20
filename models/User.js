@@ -7,13 +7,15 @@ const UserSchema = new Schema({
   email: {
     type: String,
     required: true,
-    index: { unique: true },
+    index: { unique: "{VALUE} has been take" },
     match: [
       /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
       "Please fill a valid email, {VALUE} is not a valid address",
     ],
   },
 });
+
+UserSchema.plugin(require("mongoose-unique-validator")); //Pretty error and messages
 
 //Notes: {PATH}/{VALUE}
 module.exports = model("User", UserSchema);
