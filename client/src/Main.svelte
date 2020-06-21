@@ -1,4 +1,5 @@
 <script>
+  import Notifications from "svelte-notifications";
   import UserForm from "./UserForm.svelte";
   import NavBar from "./NavBar.svelte";
 </script>
@@ -9,5 +10,7 @@
 
 <NavBar />
 <div class="container p-5">
-  <UserForm />
+  <Notifications>
+    <UserForm />
+  </Notifications>
 </div>

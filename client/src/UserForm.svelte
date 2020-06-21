@@ -2,6 +2,11 @@
   import axios from "axios";
   import { onMount } from "svelte";
 
+  //Notifications
+  import { getNotificationsContext } from "svelte-notifications";
+  const { addNotification } = getNotificationsContext();
+
+  //Field
   let id = "";
   let name = "";
   let flastname = "";
@@ -9,14 +14,15 @@
   let email = "";
   let users = [];
 
-  let btnIsEnable = false;
-  let btnIsHide = false;
+  //Disable button
+  let btnIsDisabled = false;
+  let btnIsHidden = false;
 
   onMount(async () => {
-    const { data, status } = await axios.get("/api/users/");
-    users = data; //Read the user into mongo
+    readUsers();
   });
 
+  //CRUD
   const createUser = async () => {
     const singleUser = {
       name: name,
@@ -24,29 +30,35 @@
       mlastname: mlastname,
       email: email
     };
-    const response = await axios.post("/api/users/", singleUser); //Create a single user into mongo
-    singleUser = [response.data, ...users];
-    name = "";
-    flastname = "";
-    mlastname = "";
-    email = "";
-    btnIsEnable = true;
-  };
-
-  const deleteUser = async user => {
-    const response = await axios.delete("/api/users/" + user._id);
-    if (response.data.id == user._id) {
-      users = users.filter(t => t._id != user._id);
+    try {
+      const response = await axios.post("/api/users/", singleUser); //Create a single user into mongo
+      if (response.status == 200) {
+        users = users.concat(response.data);
+        btnIsDisabled = true;
+        clearFields();
+        notification(
+          "Usuario creado exitosamente",
+          "top-right",
+          "success",
+          3000
+        );
+      }
+    } catch (e) {
+      notification(
+        "Error creando usuario: " + e.message,
+        "top-right",
+        "danger",
+        3000
+      );
     }
+    //singleUser = [response.data, ...users];
   };
 
-  const setFieldsUpdateUser = async user => {
-    id = user._id;
-    name = user.name;
-    flastname = user.flastname;
-    mlastname = user.mlastname;
-    email = user.email;
-    btnIsHide = true;
+  const readUsers = async () => {
+    const { data, status } = await axios.get("/api/users");
+    if (status == 200) {
+      users = data; //Read the user into mongo
+    }
   };
 
   const updateUser = async () => {
@@ -56,10 +68,84 @@
       mlastname: mlastname,
       email: email
     };
-    const response = await axios.put("/api/users/" + id, singleUser);
-    if (response.data._id == id) {
-      users = users.filter(t => t._id != id);
+    try {
+      const response = await axios.put("/api/users/" + id, singleUser);
+      if (response.status == 200) {
+        clearFields();
+        notification(
+          "Usuario con ID(" +
+            response.data._id +
+            ") ha sido actualizado existosamente",
+          "top-right",
+          "success",
+          3000
+        );
+        readUsers();
+        btnIsHidden = false;
+      }
+    } catch (e) {
+      notification(
+        "Error actualizando usuario: " + e.message,
+        "top-right",
+        "warning",
+        3000
+      );
     }
+  };
+
+  const deleteUser = async user => {
+    const response = await axios.delete("/api/users/" + user._id);
+    if (response.status == 200) {
+      //if (response.data.id == user._id) {
+      users = users.filter(t => t._id != user._id);
+      addNotification({
+        text:
+          "Usuario con ID(" + user._id + ") ha sido eliminado existosamente",
+        position: "top-right",
+        type: "danger",
+        removeAfter: removeAfterDelete
+      });
+    }
+  };
+
+  const onSubmitHandler = () => {
+    if (btnIsHidden) {
+      updateUser();
+    } else {
+      createUser();
+    }
+  };
+
+  const setFieldsUpdateUser = async user => {
+    id = user._id;
+    name = user.name;
+    flastname = user.flastname;
+    mlastname = user.mlastname;
+    email = user.email;
+    btnIsHidden = true;
+    btnIsDisabled = false;
+    notification(
+      "Modifique los campos (" + id + ")",
+      "top-right",
+      "info",
+      3000
+    );
+  };
+
+  const notification = (msg, pos, type, time) => {
+    addNotification({
+      text: msg,
+      position: pos,
+      type: type,
+      removeAfter: time
+    });
+  };
+
+  const clearFields = () => {
+    name = "";
+    flastname = "";
+    mlastname = "";
+    email = "";
   };
 </script>
 
@@ -74,15 +160,12 @@
 <div class="row">
   <div class="col-md-4 pb-3">
     <form
-      on:submit={() => {
-        if (btnIsHide) {
-          updateUser();
-        } else {
-          createUser();
-        }
+      on:submit|preventDefault={onSubmitHandler}
+      on:change={() => {
+        btnIsDisabled = false;
       }}>
       <h1 class="text-center">Usuario</h1>
-      {#if id}
+      {#if btnIsHidden}
         <br />
         <h4 class="text-center">({id})</h4>
       {/if}
@@ -128,17 +211,15 @@
         </small>
       </div>
       <button
-        type="submit"
         class="btn btn-primary btn-block"
-        disabled={btnIsEnable}
-        hidden={btnIsHide}>
+        disabled={btnIsDisabled}
+        hidden={btnIsHidden}>
         GUARDAR
       </button>
       <button
-        type="submit"
         class="btn btn-primary btn-block"
-        disabled={btnIsEnable}
-        hidden={!btnIsHide}>
+        disabled={btnIsDisabled}
+        hidden={!btnIsHidden}>
         ACTUALIZAR
       </button>
     </form>
@@ -160,14 +241,10 @@
               </p>
               <button
                 class="btn btn-warning"
-                on:click={() => setFieldsUpdateUser(user)}
-                disabled={btnIsEnable}>
+                on:click={() => setFieldsUpdateUser(user)}>
                 Actualizar
               </button>
-              <button
-                class="btn btn-danger"
-                on:click={() => deleteUser(user)}
-                disabled={btnIsEnable}>
+              <button class="btn btn-danger" on:click={() => deleteUser(user)}>
                 Eliminar
               </button>
             </div>
