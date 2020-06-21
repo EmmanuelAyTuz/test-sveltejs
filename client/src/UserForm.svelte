@@ -37,7 +37,9 @@
         btnIsDisabled = true;
         clearFields();
         notification(
-          "Usuario creado exitosamente",
+          "Usuario con ID(" +
+            response.data._id +
+            ") ha sido creado existosamente",
           "top-right",
           "success",
           3000
@@ -74,7 +76,7 @@
         clearFields();
         notification(
           "Usuario con ID(" +
-            response.data._id +
+            response.data.id +
             ") ha sido actualizado existosamente",
           "top-right",
           "success",
@@ -95,16 +97,26 @@
 
   const deleteUser = async user => {
     const response = await axios.delete("/api/users/" + user._id);
-    if (response.status == 200) {
-      //if (response.data.id == user._id) {
-      users = users.filter(t => t._id != user._id);
-      addNotification({
-        text:
-          "Usuario con ID(" + user._id + ") ha sido eliminado existosamente",
-        position: "top-right",
-        type: "danger",
-        removeAfter: removeAfterDelete
-      });
+    try {
+      if (response.status == 200) {
+        //if (response.data.id == user._id) {
+        users = users.filter(t => t._id != user._id);
+        notification(
+          "Usuario con ID(" +
+            response.data.id +
+            ") ha sido eliminado existosamente",
+          "top-right",
+          "success",
+          3000
+        );
+      }
+    } catch (e) {
+      notification(
+        "Error eliminando usuario: " + e.message,
+        "top-right",
+        "warning",
+        3000
+      );
     }
   };
 
