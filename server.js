@@ -1,3 +1,4 @@
+const path = require("path");
 //Envioments
 const { port } = require("./env");
 
@@ -12,14 +13,17 @@ const morgan = require("morgan");
 
 //Middlewares
 app.use(cors());
-app.use(bodyParser());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan("tiny"));
 
 //Connect to mongo DB
 require("./database");
 
 //Routes of server API
-app.use("/api/users", require("./routes/users"));
+app.use("/api/users", require("./routes/users")); //Model JSON
+app.use("/api/upload", require("./routes/upload")); //Upload files
+app.use("/api", express.static(path.join(__dirname, "data"))); //Data
 
 //Route testing
 app.get("/test", (req, res) => {

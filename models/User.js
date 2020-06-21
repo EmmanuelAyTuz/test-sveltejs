@@ -4,6 +4,11 @@ const UserSchema = new Schema({
   name: { type: String, required: true, uppercase: true, trim: true },
   flastname: { type: String, required: true, uppercase: true, trim: true },
   mlastname: { type: String, required: true, uppercase: true, trim: true },
+  folder: { type: String, required: true },
+  imgprofile: {
+    original: { type: String, required: true, default: "profile_default.png" },
+    thumbnail: { type: String, required: false },
+  },
   email: {
     type: String,
     required: true,

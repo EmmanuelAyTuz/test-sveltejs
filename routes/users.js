@@ -1,4 +1,6 @@
 const { Router } = require("express");
+const rimraf = require("rimraf");
+const fs = require("fs");
 const User = require("../models/User");
 
 const router = Router();
@@ -13,12 +15,13 @@ const ed_msg = "Error eliminado usuario";
 
 //Create
 router.post("/", async (req, res) => {
-  const { name, flastname, mlastname, email } = req.body;
+  const { name, flastname, mlastname, email, folder } = req.body;
   const newUser = new User({
     name,
     flastname,
     mlastname,
     email,
+    folder,
   });
   try {
     const user = await newUser.save();
@@ -61,7 +64,7 @@ router.get("/:id", async (req, res) => {
 //Update
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  const { name, flastname, mlastname, email } = req.body;
+  const { name, flastname, mlastname, email, imgprofile } = req.body;
   try {
     const user = User.findById(id);
     if (!user) {
@@ -75,6 +78,7 @@ router.put("/:id", async (req, res) => {
       flastname,
       mlastname,
       email,
+      imgprofile,
     });
     if (!updated) {
       throw new Error(eu_msg);
@@ -97,6 +101,9 @@ router.delete("/:id", async (req, res) => {
     if (!removed) {
       throw new Error(ed_msg);
     }
+    const myFolder = "./data/" + user.folder;
+    await rimraf(myFolder, () => {});
+
     res.status(200).json({ id });
   } catch (error) {
     res.status(404).json({ message: error.message });
