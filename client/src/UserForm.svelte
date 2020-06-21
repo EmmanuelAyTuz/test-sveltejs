@@ -37,7 +37,7 @@
         btnIsDisabled = true;
         clearFields();
         notification(
-          "Usuario con ID(" +
+          "Usuario con ID (" +
             response.data._id +
             ") ha sido creado existosamente",
           "top-right",
@@ -49,7 +49,7 @@
       notification(
         "Error creando usuario: " + e.message,
         "top-right",
-        "danger",
+        "warning",
         3000
       );
     }
@@ -75,7 +75,7 @@
       if (response.status == 200) {
         clearFields();
         notification(
-          "Usuario con ID(" +
+          "Usuario con ID (" +
             response.data.id +
             ") ha sido actualizado existosamente",
           "top-right",
@@ -102,11 +102,11 @@
         //if (response.data.id == user._id) {
         users = users.filter(t => t._id != user._id);
         notification(
-          "Usuario con ID(" +
+          "Usuario con ID (" +
             response.data.id +
             ") ha sido eliminado existosamente",
           "top-right",
-          "success",
+          "danger",
           3000
         );
       }
@@ -120,6 +120,7 @@
     }
   };
 
+  //Submit handler of tag form
   const onSubmitHandler = () => {
     if (btnIsHidden) {
       updateUser();
@@ -128,6 +129,7 @@
     }
   };
 
+  //Fill fields
   const setFieldsUpdateUser = async user => {
     id = user._id;
     name = user.name;
@@ -144,6 +146,7 @@
     );
   };
 
+  //Create notifications
   const notification = (msg, pos, type, time) => {
     addNotification({
       text: msg,
@@ -153,6 +156,7 @@
     });
   };
 
+  //Reset fields
   const clearFields = () => {
     name = "";
     flastname = "";
