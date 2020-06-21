@@ -12,7 +12,13 @@
   let flastname = "";
   let mlastname = "";
   let email = "";
+  let folder = "";
+  let img = "";
   let users = [];
+
+  //More
+  let files;
+  //let dataFile = null;
 
   //Disable button
   let btnIsDisabled = false;
@@ -28,7 +34,8 @@
       name: name,
       flastname: flastname,
       mlastname: mlastname,
-      email: email
+      email: email,
+      folder: Math.floor(Math.random() * 101 + 0) + "_" + Date.now()
     };
     try {
       const response = await axios.post("/api/users/", singleUser); //Create a single user into mongo
@@ -68,7 +75,8 @@
       name: name,
       flastname: flastname,
       mlastname: mlastname,
-      email: email
+      email: email,
+      imgprofile: { original: img }
     };
     try {
       const response = await axios.put("/api/users/" + id, singleUser);
@@ -121,9 +129,10 @@
   };
 
   //Submit handler of tag form
-  const onSubmitHandler = () => {
+  const onSubmitHandler = async () => {
     if (btnIsHidden) {
-      updateUser();
+      await uploadFile();
+      await updateUser();
     } else {
       createUser();
     }
@@ -162,6 +171,24 @@
     flastname = "";
     mlastname = "";
     email = "";
+  };
+
+  //File upload
+  const uploadFile = async () => {
+    let formData = new FormData();
+    let imagefile = document.querySelector("#profile");
+    let fileup = imagefile.files[0];
+    formData.append("profile", fileup);
+    if (fileup) {
+      const response = await axios.post("/api/upload/" + id, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
+      if (response.status == 200) {
+        img = response.data.data.filename; //New filename of upload image
+      }
+    }
   };
 </script>
 
@@ -226,6 +253,17 @@
           Nosotros no compartimos tu correo con nadien
         </small>
       </div>
+      {#if btnIsHidden}
+        <!--Show in update-->
+        <div class="form-group">
+          <input
+            id="profile"
+            name="profile"
+            type="file"
+            bind:files
+            class="form-control" />
+        </div>
+      {/if}
       <button
         class="btn btn-primary btn-block"
         disabled={btnIsDisabled}
@@ -246,6 +284,15 @@
         <div class="col-md-6 pb-3">
           <div class="card">
             <div class="card-body">
+              {#if user.imgprofile.original != 'profile_default.png'}
+                <img
+                  src="/api/{user.folder}/{user.imgprofile.original}"
+                  alt={user._id}
+                  width="75%" />
+              {:else}
+                <img src="/img/{user.imgprofile.original}" alt={user._id} />
+              {/if}
+
               <h5 class="card-title text-center">
                 ID:
                 <b>{user._id}</b>
@@ -254,6 +301,10 @@
                 Nombre: {user.name} {user.flastname} {user.mlastname}
                 <br />
                 Email: {user.email}
+                <br />
+                Carpeta: {user.folder}
+                <br />
+                Imagen: {user.imgprofile.original}
               </p>
               <button
                 class="btn btn-warning"
